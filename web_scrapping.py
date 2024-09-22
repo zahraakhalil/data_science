@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from dataclasses import dataclass,asdict
+from dataclasses import dataclass, asdict
 import json
 import os
 
@@ -8,29 +8,35 @@ import os
 @dataclass
 class Article:
     url: str
-    post_id: int
+    postid: int
     title: str
-    keywords: list
+    keywords: list[str]
     thumbnail: str
     publication_date: str
     last_updated_date: str
     author: str
-    content:str
+    content: str
+    type: str
+    word_count: str
+    lang: str
+    description: str
+    classes: list[dict[str, str]]
+    video_duration: str
+    html: str
+    lite_url: str
 
 
-class parseHandling:
-
+class ParseHandling:
 
     def __init__(self, url: str):
         self.url = url
 
-    def getAllUrl(self,url):
+    def getAllUrl(self, url):
         try:
-            page = requests.get(url)
-            pageContent = page.content
+            pageContent = requests.get(url).content
             soup = BeautifulSoup(pageContent, "lxml")
             fullPage = soup.find_all("loc")
-            allArticleUrl=[]
+            allArticleUrl = []
             for page in fullPage:
                 allArticleUrl.append(page.text)
             return allArticleUrl
@@ -38,10 +44,9 @@ class parseHandling:
             print(f"Site parser Failed : {e} ")
             return []
 
-    def getArticleUrl(self,url):
+    def getArticleUrl(self, url):
         try:
-            page = requests.get(url)
-            pageContent = page.content
+            pageContent = requests.get(url).content
             soup = BeautifulSoup(pageContent, "lxml")
             fullPage = soup.find_all("loc")
             allArticleUrl = []
@@ -58,31 +63,38 @@ class ArticleScraper:
 
     def scrapeArticle(self, url):
         try:
-            session = requests.Session()
-            response = session.get(url)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
-            metadata_script = soup.find('script', type='application/ld+json')
+            response = requests.get(url).content
+            soup = BeautifulSoup(response, 'html.parser')
+            metadata_script = soup.find('script', type='text/tawsiyat')
             metadata = json.loads(metadata_script.string)
-            s=""
-            print(s)
+
             article = Article(
                 url=url,
-                post_id=metadata.get('post_id'),
-                title=metadata.get('headline'),
-                keywords=metadata.get('keywords'),
-                thumbnail=metadata.get('image'),
-                publication_date=metadata.get('datePublished'),
-                last_updated_date=metadata.get('dateModified'),
-                author=metadata.get('author').get('name'),
-                content=' '.join(p.get_text() for p in soup.find_all('p'))
+                postid=metadata.get('postid', ''),
+                title=metadata.get('title', ''),
+                keywords=metadata.get('keywords', '').split(','),
+                thumbnail=metadata.get('thumbnail', ''),
+                publication_date=metadata.get('published_time', ''),
+                last_updated_date=metadata.get('last_updated', ''),
+                author=metadata.get('author', ''),
+                content=' '.join(p.get_text() for p in soup.find_all('p')),
+                type=metadata.get('type', ''),
+                word_count=metadata.get('word_count', ''),
+                lang=metadata.get('lang', ''),
+                description=metadata.get('description', ''),
+                classes=metadata.get('classes', []),
+                video_duration=metadata.get('video_duration', ''),
+                html=metadata.get('html', ''),
+                lite_url=metadata.get('lite_url', '')
             )
             return article
         except Exception as e:
             print(f"Failed to scrape article at {url}: {e}")
             return None
 
+
 class FileUtility:
+
     def __init__(self, output_directory):
         self.output_directory = output_directory
         os.makedirs(output_directory, exist_ok=True)
@@ -97,9 +109,9 @@ class FileUtility:
 def main():
 
     pageUrl = "https://www.almayadeen.net/sitemaps/all.xml"
-    parseHandler=parseHandling(pageUrl)
+    parseHandler = ParseHandling(pageUrl)
     scraperObj = ArticleScraper()
-    file_utility = FileUtility(output_directory='Json_Files')
+    file_utility = FileUtility(output_directory='Task1')
 
     allMonthlyUrl = parseHandler.getAllUrl(pageUrl)
     if not allMonthlyUrl:
@@ -114,7 +126,7 @@ def main():
         year_month = url.split('-')[-2:]
         year = year_month[0]
         month = year_month[1].replace('.xml', '')
-        articlesList=[]
+        articlesList = []
         for articleUrl in articlesUrl:
             if article_scrapped >= maxArticleToScrap:
                 break
@@ -123,8 +135,10 @@ def main():
                 article_scrapped += 1
                 articlesList.append(data_scraped)
                 file_utility.save_to_json(articlesList, year, month)
-                print(f"{data_scraped.title} is the {article_scrapped} article")
-
+                if data_scraped is not None:
+                    print(f"{data_scraped.title} is the {article_scrapped} article")
+                else:
+                    print("The element was not found, and data_scraped is None.")
 
 
 if __name__ == "__main__":
