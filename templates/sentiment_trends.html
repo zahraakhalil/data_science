@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %} Sentiment Trends {% endblock %}
+{% block Body %}
+
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<h2>Sentiment Trends by Month</h2>
+<div id="chartdiv" style="width: 100%; height: 500px;"></div>
+
+<script>
+    // Direct data from Flask
+    const data = {{ results | tojson }};
+
+    // Format data for each sentiment type
+    const formattedData = data.map(item => ({
+        sentiment: item.sentiment,
+        date: new Date(item.year, item.month - 1).getTime(), // Convert date to milliseconds
+        count: item.count
+    }));
+
+    console.log("Formatted Data:", formattedData); // Check the data format
+
+    am5.ready(function() {
+        let root = am5.Root.new("chartdiv");
+
+        root.setThemes([ am5themes_Animated.new(root) ]);
+
+        let chart = root.container.children.push(
+            am5xy.XYChart.new(root, {
+                panX: true,
+                panY: true,
+                wheelX: "panX",
+                wheelY: "zoomX",
+                pinchZoomX: true
+            })
+        );
+
+        let xAxis = chart.xAxes.push(
+            am5xy.DateAxis.new(root, {
+                maxDeviation: 0.2,
+                baseInterval: { timeUnit: "month", count: 1 },
+                renderer: am5xy.AxisRendererX.new(root, {
+                    minGridDistance: 30,
+                })
+            })
+        );
+
+        let yAxis = chart.yAxes.push(
+            am5xy.ValueAxis.new(root, {
+                renderer: am5xy.AxisRendererY.new(root, {})
+            })
+        );
+
+        // Group data by sentiment
+        const groupedData = formattedData.reduce((acc, item) => {
+            if (!acc[item.sentiment]) {
+                acc[item.sentiment] = [];
+            }
+            acc[item.sentiment].push(item);
+            return acc;
+        }, {});
+
+        console.log("Grouped Data:", groupedData); // Check grouped data
+
+        // Create a line series for each sentiment type
+        Object.keys(groupedData).forEach((sentiment, index) => {
+            console.log(`Adding series for: ${sentiment}`, groupedData[sentiment]); // Log sentiment data
+
+            let series = chart.series.push(
+                am5xy.LineSeries.new(root, {
+                    name: `${sentiment} Sentiment`,
+                    xAxis: xAxis,
+                    yAxis: yAxis,
+                    valueYField: "count",
+                    dateXField: "date",
+                    tooltip: am5.Tooltip.new(root, {
+                        labelText: "{dateX.formatDate('MMMM yyyy')}: {valueY}"
+                    })
+                })
+            );
+
+            series.data.setAll(groupedData[sentiment]);
+            series.appear(1000);
+
+            const colors = [am5.color(0xff0000), am5.color(0x00ff00), am5.color(0x0000ff)];
+            series.set("stroke", colors[index % colors.length]);
+        });
+
+        chart.set("scrollbarX", am5.Scrollbar.new(root, { orientation: "horizontal" }));
+
+        console.log("Chart rendered successfully with static data");
+    });
+</script>
+{% endblock %}

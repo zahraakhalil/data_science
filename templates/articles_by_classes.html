@@ -1,0 +1,67 @@
+{% extends"base.html" %}
+{% block title %} Article By Classes {% endblock %}
+{% block Body %}
+<h1>Here Are a Stacked Bar Chart Of The Articles by Their Classes </h1>
+<br><br>
+<style>
+    body h1{
+    text-align:center
+}
+#chartdiv {
+	width		: 100%;
+	height		: 500px;
+	font-size	: 11px;
+}
+</style>
+
+<!-- Resources -->
+<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+
+<!-- Chart code -->
+<script>
+var chart = AmCharts.makeChart("chartdiv", {
+    "type": "serial",
+	"theme": "none",
+    "legend": {
+        "horizontalGap": 10,
+        "maxColumns": 1,
+        "position": "right",
+		"useGraphSettings": true,
+		"markerSize": 10
+    },
+    "dataProvider": {{results | tojson}},
+    "valueAxes": [{
+        "stackType": "regular",
+        "axisAlpha": 0.5,
+        "gridAlpha": 0
+    }],
+    "graphs": [{
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Number of Article Of that Category",
+        "type": "column",
+		"color": "#000000",
+        "valueField": "count"
+    }],
+    "rotate": true,
+    "categoryField": "_id",
+    "categoryAxis": {
+        "gridPosition": "start",
+        "axisAlpha": 0,
+        "gridAlpha": 0,
+        "position": "left"
+    },
+    "export": {
+    	"enabled": true
+     }
+});
+</script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+{% endblock %}

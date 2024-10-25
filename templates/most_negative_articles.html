@@ -1,0 +1,47 @@
+{% extends"base.html" %}
+{% block title %} Most Negative Articles {% endblock %}
+{% block Body %}
+<h1>Here Are a Bar Chart Of The Article By their Senitment analysis </h1>
+<br><br>
+<style>
+body h1{
+    text-align: center;
+}
+html, body {
+  width: 100%;
+  height: 80%;
+  margin: 0px;
+}
+
+#chartdiv {
+	width: 100%;
+	height: 100%;
+}
+
+</style>
+
+<!-- Resources -->
+<script src="//www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="//www.amcharts.com/lib/3/serial.js"></script>
+<script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+
+<!-- Chart code -->
+<script>
+var chart = AmCharts.makeChart("chartdiv", {
+  "type": "serial",
+  "theme": "light",
+  "dataProvider": {{results | tojson}},
+  "graphs": [{
+    "fillAlphas": 0.9,
+    "lineAlpha": 0.2,
+    "type": "column",
+    "valueField": "polarity"
+  }],
+  "categoryField": "title",
+  "rotate": true
+});
+</script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+{% endblock %}

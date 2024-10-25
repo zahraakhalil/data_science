@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Articles Published on Specific Day by Hour{% endblock %}
+{% block Body %}
+<h1>Line Chart of Articles Published on a Specific Day by Hour</h1>
+<br><br>
+<style>
+    body h1 {
+        text-align: center;
+    }
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+<!-- Chart code -->
+<script>
+am4core.ready(function() {
+
+    // Themes begin
+    am4core.useTheme(am4themes_animated);
+    // Themes end
+
+    var chart = am4core.create("chartdiv", am4charts.XYChart);
+    chart.padding(40, 40, 40, 40);
+
+    // Data preparation: Filter data for a specific day and convert datetime to timestamp
+    var rawData = {{ results | tojson }};
+    var filteredData = rawData.filter(function(item) {
+        // Filter data for the specific day (e.g., "2024-06-13")
+        var date = new Date(item.published_time);
+        return date.toISOString().split('T')[0] === "2024-06-13"; // Adjust the date to your specific day
+    });
+
+    // Set chart data
+    chart.data = filteredData;
+
+    // Create X-axis as a DateAxis
+    var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+    dateAxis.renderer.grid.template.location = 0;
+    dateAxis.title.text = "Time of Publication";
+    dateAxis.dateFormats.setKey("hour", "HH:mm");  // Display hours and minutes
+    dateAxis.periodChangeDateFormats.setKey("hour", "[bold]HH:mm");
+    dateAxis.renderer.minGridDistance = 60; // Minimum distance between grid lines
+
+    // Create Y-axis
+    var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis.title.text = "Article Count"; // You can change this as per your use case
+
+    // Create line series
+    var series = chart.series.push(new am4charts.LineSeries());
+    series.dataFields.valueY = "value"; // Placeholder value; adjust if you have a different field for y-values
+    series.dataFields.dateX = "published_time"; // Use datetime for X-axis
+    series.tooltipText = "{title}: [bold]{valueY}[/]"; // Display title and value in tooltip
+    series.strokeWidth = 2;
+
+    // Add bullets to the line chart
+    var bullet = series.bullets.push(new am4charts.CircleBullet());
+    bullet.circle.radius = 4;
+    bullet.circle.strokeWidth = 2;
+    bullet.circle.fill = am4core.color("#fff");
+
+    // Add a cursor to the chart
+    chart.cursor = new am4charts.XYCursor();
+    chart.cursor.xAxis = dateAxis;
+    chart.cursor.snapToSeries = series;
+
+    // Enable scrollbar
+    chart.scrollbarX = new am4core.Scrollbar();
+
+}); // end am4core.ready()
+</script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+{% endblock %}

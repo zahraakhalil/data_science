@@ -1,0 +1,51 @@
+{% extends"base.html" %}
+{% block title %} Article By word count Range {% endblock %}
+{% block Body %}
+<h1>Here Are a Histogram Of The Articles by Word Count Range </h1>
+<br><br>
+
+<script src="//www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="//www.amcharts.com/lib/3/serial.js"></script>
+<script src="//www.amcharts.com/lib/3/themes/light.js"></script>
+<style>
+    html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+}
+
+#chartdiv {
+  width: 100%;
+  height: 100%;
+}
+body h1{
+    text-align:center
+}
+</style>
+<script>
+var chart = AmCharts.makeChart("chartdiv", {
+  "type": "serial",
+  "theme": "light",
+  "columnWidth": 1,
+  "dataProvider": {{results | tojson}},
+  "graphs": [{
+    "fillColors": "#b10",
+    "fillAlphas": 0.9,
+    "lineColor": "#fff",
+    "lineAlpha": 0.7,
+    "type": "column",
+    "valueField": "count"
+  }],
+  "categoryField": "_id",
+  "categoryAxis": {
+    "startOnAxis": true,
+    "title": "Articles World Count Range"
+  },
+  "valueAxes": [{
+    "title": "Count"
+  }]
+});
+</script>
+<div id="chartdiv"></div>
+
+{% endblock %}

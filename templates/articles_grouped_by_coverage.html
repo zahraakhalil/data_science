@@ -1,0 +1,72 @@
+{% extends"base.html" %}
+{% block title %} Top Keywords {% endblock %}
+{% block Body %}
+<h1>Here Are a Word Cloud Of The Top Keywords</h1>
+<br>
+<!-- Styles -->
+<style>
+body h1{
+    text-align:center
+}
+#chartdiv {
+	width		: 100%;
+	height		: 500px;
+	font-size	: 11px;
+}
+</style>
+<!-- Resources -->
+<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+
+<!-- Chart code -->
+<script>
+    var chartData = {{ results | tojson }};
+
+    // Transform the data into the format expected by amCharts
+    var transformedData = [{
+        "category": "Data",  // A single category to represent all items
+        "values": chartData.map(item => item.count)  // Get all counts
+    }];
+
+    // Create separate fields for each _id to enable stacking
+    chartData.forEach(item => {
+        transformedData[0][item._id] = item.count; // Assign count to its corresponding _id
+    });
+
+    var chart = AmCharts.makeChart("chartdiv", {
+        "type": "serial",
+        "theme": "none",
+        "dataProvider": [transformedData[0]], // Use transformed data
+        "valueAxes": [{
+            "stackType": "regular",
+            "axisAlpha": 0.5,
+            "gridAlpha": 0,
+            "title": "Counts"
+        }],
+        "graphs": chartData.map(item => ({
+            "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>Count: <b>[[value]]</b></span>",
+            "fillAlphas": 0.8,
+            "labelText": "[[value]]",
+            "lineAlpha": 0.3,
+            "title": item._id, // Use _id as title
+            "type": "column",
+            "valueField": item._id // Field to stack
+        })),
+        "categoryField": "category", // Single category field
+        "categoryAxis": {
+            "gridPosition": "start",
+            "axisAlpha": 0,
+            "gridAlpha": 0,
+            "position": "left"
+        },
+        "export": {
+            "enabled": true
+        }
+    });
+</script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+{% endblock %}

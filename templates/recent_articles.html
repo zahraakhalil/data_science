@@ -1,0 +1,117 @@
+{% extends"base.html" %}
+{% block title %} Recent Article {% endblock %}
+{% block Body %}
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f3f4f6;
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .table-container {
+        width: 100%;
+        max-width: 900px;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        border-top: 6px solid #ff4b5c;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #ff4b5c;
+        color: #ffffff;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.85em;
+    }
+
+    td {
+        background-color: #f7f9fb;
+        color: #555;
+        font-size: 0.95em;
+        border-bottom: 1px solid #e2e6ea;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background-color: #ffe2e6;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .link {
+        color: #ff4b5c;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+        color: #d83c47;
+    }
+
+    @media (max-width: 768px) {
+        .table-container {
+            padding: 20px;
+        }
+
+        th, td {
+            font-size: 0.8em;
+            padding: 12px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+        }
+    }
+</style>
+<div class="table-container">
+    <h2>Articles</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date of Publishing</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results%}
+            <tr>
+                <td>{{result["title"]}}</td>
+                <td>{{result["publication_date"]}}</td>
+                <td><a href={{result["url"]}} class="link" target="_blank">Read Article</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
