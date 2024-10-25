@@ -111,7 +111,7 @@ def main():
     pageUrl = "https://www.almayadeen.net/sitemaps/all.xml"
     parseHandler = ParseHandling(pageUrl)
     scraperObj = ArticleScraper()
-    file_utility = FileUtility(output_directory='Task1')
+    file_utility = FileUtility(output_directory='Json_Files')
 
     allMonthlyUrl = parseHandler.getAllUrl(pageUrl)
     if not allMonthlyUrl:
